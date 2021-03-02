@@ -3,9 +3,7 @@
 
 ## 如何使用
 
-参考如下代码，即可实现动态marker绘制，并动态绘制已行走轨迹
-
-The following code will create an AnimatedMarker that moves along `line`, assuming a `Leaflet.Map` called `map`.
+参考如下代码，即可实现动态marker绘制，并动态绘制已行走轨迹。
 
     var carIcon = L.icon({
         iconSize: [37, 26],
