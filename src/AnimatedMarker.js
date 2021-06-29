@@ -6,8 +6,10 @@ L.AnimatedMarker = L.Marker.extend({
     interval: 100,
     // animate on add?
     autoStart: false,
-    isPlay: false,
-    playCall: null
+    isPlay: undefined,
+    playCall: null,
+    pauseTime:null, // 暂停时间戳
+    usedTime:0, // 画当前线段已用时间
   },
 
   initialize: function (latlngs, options) {
@@ -109,12 +111,14 @@ L.AnimatedMarker = L.Marker.extend({
 
   animate: function () {
     var now = Date.now();
-    var end = this.startedAt + this.duration;
+    var end = this.startedAt + this.duration - this.usedTime;
     if (now < end) {
       if (this.isPlay) {
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this._i < (this._latlngs.length - 1)) {
+      this.usedTime = 0;
+      this.pauseTime = null;
       this.startedAt = Date.now();
       this.startLatLng = this._latlngs[this._i]
       this.nextLatLng = this._latlngs[this._i + 1]
@@ -129,7 +133,7 @@ L.AnimatedMarker = L.Marker.extend({
 
     // 解决地图缩放是图标会偏移轨迹线问题
     if (!this.isZooming && this.map) {
-      var t = now - this.startedAt;
+      var t = now - this.startedAt + this.usedTime;
       var lat = this.startLatLng.lat + ((this.nextLatLng.lat - this.startLatLng.lat) / this.startLatLng.duration * t);
       var lng = this.startLatLng.lng + ((this.nextLatLng.lng - this.startLatLng.lng) / this.startLatLng.duration * t);
       this.setLatLng({
@@ -147,19 +151,24 @@ L.AnimatedMarker = L.Marker.extend({
   },
   // Start the animation
   start: function () {
-    this.isPlay = true
+    if(this.isPlay === false){
+      // 若为暂停后重新开始,记录当前线段已用时间
+      this.usedTime += this.pauseTime - this.startedAt;
+      this.pauseTime = null;
+    }
     this.startedAt = Date.now();
+    this.isPlay = true
     this.animate()
   },
 
   pause: function () {
+    this.pauseTime = Date.now();
     this.isPlay = false
   },
-
   // Stop the animation in place
   stop: function () {
-    console.log('stop')
-    this.isPlay = false
+    this.isPlay = undefined
+    this.usedTime = 0
     this.startedAt = NaN
     this._i = 0
     this.animate();
