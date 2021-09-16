@@ -42,6 +42,19 @@
         newLatlngs = []
         animatedMarker.stop();
     }
+    
+    let speetX = 1 // 默认速度倍数
+    // 加速
+    function speetUp() {
+      speetX = speetX * 2
+      animatedMarker.setSpeetX(speetX);
+    }
+    
+    // 减速
+    function speetDown() {
+      speetX = speetX / 2
+      animatedMarker.setSpeetX(speetX);
+    }
 
 
 
