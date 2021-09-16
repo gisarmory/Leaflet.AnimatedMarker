@@ -41,6 +41,8 @@
   <div class="menuBar">
     <input type="button" value="开始" onclick="startClick()" />
     <input type="button" value="暂停" onclick="pauseClick()" />
+    <input type="button" value="加速" onclick="speetUp()" />
+    <input type="button" value="减速" onclick="speetDown()" />
     <input type="button" value="停止" onclick="stopClick()" />
   </div>
 </body>
@@ -50,7 +52,7 @@
   var map = L.map('map', {
     center: [39.924317, 116.390619],
     zoom: 14,
-    // preferCanvas: true // 使用canvas模式渲染矢量图形 
+    preferCanvas: true // 使用canvas模式渲染矢量图形 
   });
   // 添加底图
   var tiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
@@ -81,47 +83,61 @@
     [39.906308, 116.391264],
     [39.916611, 116.390748]
   ];
-  // latlngs.reverse()
+  var speedList = [1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 4, 4, 4, 3, 2, 2, 1, 1, 1]
   // 轨迹线
   var routeLine = L.polyline(latlngs, {
     weight: 8
   }).addTo(map);
-
-
-  // 轨迹线
+  // 实时轨迹线
   var realRouteLine = L.polyline([], {
-    weight: 5,
+    weight: 8,
     color: '#FF9900'
   }).addTo(map);
 
-  var markers = [];
   var carIcon = L.icon({
     iconSize: [37, 26],
     iconAnchor: [19, 13],
     iconUrl: './car.png'
   })
-
+  // 动态marker
   var animatedMarker = L.animatedMarker(routeLine.getLatLngs(), {
+    speedList: speedList,
+    interval: 200, // 默认为100mm
     icon: carIcon,
-    isRotate: true,
     playCall: updateRealLine
   }).addTo(map)
-
   var newLatlngs = [routeLine.getLatLngs()[0]]
 
+  // 绘制已行走轨迹线（橙色那条）
   function updateRealLine(latlng) {
     newLatlngs.push(latlng)
     realRouteLine.setLatLngs(newLatlngs)
   }
 
+  let speetX = 1 // 默认速度倍数
+  // 加速
+  function speetUp() {
+    speetX = speetX * 2
+    animatedMarker.setSpeetX(speetX);
+  }
+
+  // 减速
+  function speetDown() {
+    speetX = speetX / 2
+    animatedMarker.setSpeetX(speetX);
+  }
+
+  // 开始
   function startClick() {
     animatedMarker.start();
   }
 
+  // 暂停
   function pauseClick() {
     animatedMarker.pause();
   }
 
+  // 停止
   function stopClick() {
     newLatlngs = []
     animatedMarker.stop();

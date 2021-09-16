@@ -1,8 +1,10 @@
 L.AnimatedMarker = L.Marker.extend({
   options: {
-    // meters
+    speetX: 1,
+    speedList: [],
+    // meters（米）
     distance: 100,
-    // ms
+    // ms（毫秒）
     interval: 100,
     // animate on add?
     autoStart: false,
@@ -12,8 +14,8 @@ L.AnimatedMarker = L.Marker.extend({
 
   initialize: function (latlngs, options) {
     this.isZooming = false;
-    this.setLine(latlngs);
     L.Marker.prototype.initialize.call(this, latlngs[0], options);
+    this.setLine(latlngs);
     this.resetIcon(options.icon.options)
   },
 
@@ -43,7 +45,9 @@ L.AnimatedMarker = L.Marker.extend({
         if ((v.before && (Math.abs(v.before - deg) >= 180))) {
           v.div.style.transition = 'none'
         } else {
-          v.div.style.transition = 'transform linear 100ms'
+          // v.div.style.transition = 'transform linear 100ms'
+          var _speed = 100 * options.speetX + 'ms'
+          v.div.style.transition = 'transform linear ' + _speed
         }
         v.div.style.transform = 'translate3d(-19px, -13px, 0) rotate(-' + deg + 'deg)';
         v.before = deg
@@ -109,6 +113,7 @@ L.AnimatedMarker = L.Marker.extend({
 
   animate: function () {
     var now = Date.now();
+    // console.log(this.duration)
     var end = this.startedAt + this.duration;
     if (now < end) {
       if (this.isPlay) {
@@ -145,6 +150,11 @@ L.AnimatedMarker = L.Marker.extend({
       }
     }
   },
+
+  setSpeetX: function (_speetX) {
+    this.options.speetX = _speetX
+  },
+
   // Start the animation
   start: function () {
     this.isPlay = true
@@ -158,7 +168,7 @@ L.AnimatedMarker = L.Marker.extend({
 
   // Stop the animation in place
   stop: function () {
-    console.log('stop')
+    // console.log('stop')
     this.isPlay = false
     this.startedAt = NaN
     this._i = 0
@@ -166,12 +176,18 @@ L.AnimatedMarker = L.Marker.extend({
   },
 
   setLine: function (latlngs) {
+    // console.log('distance' + this.options.distance)
+    // console.log('interval' + this.options.interval)
     for (var i = 0; i < latlngs.length; i++) {
       if (i === latlngs.length - 1) {
         latlngs[i].duration = latlngs[i - 1].duration
         latlngs[i].bearing = latlngs[i - 1].bearing
       } else {
-        latlngs[i].duration = latlngs[i].distanceTo(latlngs[i + 1]) / this.options.distance * this.options.interval
+        if (this.options.speedList.length > 0 && this.options.speedList[i] !== undefined) {
+          latlngs[i].duration = latlngs[i].distanceTo(latlngs[i + 1]) / this.options.distance * (this.options.interval / this.options.speedList[i])
+        } else {
+          latlngs[i].duration = latlngs[i].distanceTo(latlngs[i + 1]) / this.options.distance * this.options.interval
+        }
         latlngs[i].bearing = this.getRotation(latlngs[i], latlngs[i + 1])
       }
     }
