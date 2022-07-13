@@ -122,7 +122,7 @@ L.AnimatedMarker = L.Marker.extend({
         requestAnimationFrame(this.animate.bind(this));
       }
     } else if (this._i < (this._latlngs.length - 1)) {
-      if(this.speetChange){
+      if (this.speetChange) {
         this._latlngs = this._latlngsnew
         this.speetChange = false
       }
@@ -141,15 +141,17 @@ L.AnimatedMarker = L.Marker.extend({
     // 解决地图缩放是图标会偏移轨迹线问题
     if (!this.isZooming && this.map) {
       var t = now - this.startedAt;
-      if (t > this.duration){ // 解决结束时小车位置超出终点问题
+      if (t > this.duration) { // 解决结束时小车位置超出终点问题
         t = this.duration
       }
       var lat = this.startLatLng.lat + ((this.nextLatLng.lat - this.startLatLng.lat) / this.startLatLng.duration * t);
       var lng = this.startLatLng.lng + ((this.nextLatLng.lng - this.startLatLng.lng) / this.startLatLng.duration * t);
-      this.setLatLng({
-        lat: lat,
-        lng: lng
-      });
+      if (lat && lng) {
+        this.setLatLng({
+          lat: lat,
+          lng: lng
+        });
+      }
       // 用于动态轨迹线展示
       if (this.options.playCall) {
         this.options.playCall({
@@ -161,11 +163,11 @@ L.AnimatedMarker = L.Marker.extend({
   },
 
   setSpeetX: function (_speetX) {
-    var speed = _speetX/this.options.speetX
+    var speed = _speetX / this.options.speetX
     this._latlngsnew = []
     for (var i = 0; i < this._latlngs.length; i++) {
       var _latlng = L.latLng(this._latlngs[i].lat, this._latlngs[i].lng);
-      _latlng.duration = this._latlngs[i].duration/speed
+      _latlng.duration = this._latlngs[i].duration / speed
       _latlng.bearing = this._latlngs[i].bearing
       this._latlngsnew.push(_latlng)
     }
@@ -177,7 +179,7 @@ L.AnimatedMarker = L.Marker.extend({
   start: function () {
     this.isPlay = true
     this.startedAt = Date.now();
-    if(this.isPause){
+    if (this.isPause) {
       this.startedAt = this.startedAt - this.playedTime
       this.isPause = false
     }
